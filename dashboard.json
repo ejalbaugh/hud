@@ -1,8 +1,14 @@
 {
-  "generated_at": "2026-01-25T13:12:55",
+  "generated_at": "2026-01-25T13:14:23",
   "left": {
     "today": [],
-    "now": [],
+    "now": [
+      {
+        "title": "DnD",
+        "date": "2026-01-27",
+        "days_until": 2
+      }
+    ],
     "soon": [
       {
         "title": "Brock's Birthday @ Ultrazone",
@@ -87,6 +93,11 @@
       "title": "Pilates",
       "date": "2026-01-26",
       "source": "recurring"
+    },
+    {
+      "title": "DnD",
+      "date": "2026-01-27",
+      "source": "left"
     },
     {
       "title": "Pilates",
