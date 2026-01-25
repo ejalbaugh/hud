@@ -1,10 +1,23 @@
 {
-  "generated_at": "2026-01-25T12:41:25",
+  "generated_at": "2026-01-25T12:45:02",
   "left": {
     "today": [],
     "now": [],
     "soon": [],
-    "landmarks": []
+    "landmarks": [
+      {
+        "title": "Anna Weeks' Wedding (Nashville)",
+        "date": "2026-04-15",
+        "notes": "Flying out day before",
+        "days_until": 80
+      },
+      {
+        "title": "2026 Camping Trip",
+        "date": "2026-05-28",
+        "notes": "Marblemount Campsite. Going up on Thursday to Brew's House",
+        "days_until": 123
+      }
+    ]
   },
   "right": {
     "appointments": [],
