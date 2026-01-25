@@ -100,6 +100,10 @@
         margin-bottom: 8px;
         border: 1px solid #26314a;
       }
+      .accent-outline {
+        border-color: var(--accent-right);
+        box-shadow: 0 0 0 1px rgba(209, 161, 207, 0.35);
+      }
       .row {
         display: flex;
         align-items: center;
@@ -189,6 +193,27 @@
         box-shadow: 0 0 0 2px rgba(107, 191, 191, 0.35);
         background: #142031;
       }
+      .split-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .split-col {
+        display: flex;
+        flex-direction: column;
+      }
+      .split-label {
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 6px;
+      }
+      @media (min-width: 700px) {
+        .split-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
     </style>
   </head>
   <body>
@@ -202,12 +227,30 @@
         <div class="left">
           <section class="today section-wrap">
             <h2>Today</h2>
-            <div id="today"></div>
+            <div class="split-grid">
+              <div class="split-col">
+                <div class="split-label">Focus</div>
+                <div id="today-primary"></div>
+              </div>
+              <div class="split-col">
+                <div class="split-label">Recurring</div>
+                <div id="today-recurring"></div>
+              </div>
+            </div>
           </section>
 
           <section class="now section-wrap">
             <h2>Now</h2>
-            <div id="now"></div>
+            <div class="split-grid">
+              <div class="split-col">
+                <div class="split-label">Focus</div>
+                <div id="now-primary"></div>
+              </div>
+              <div class="split-col">
+                <div class="split-label">Recurring</div>
+                <div id="now-recurring"></div>
+              </div>
+            </div>
           </section>
 
           <section class="soon section-wrap">
@@ -250,12 +293,41 @@
     </main>
 
     <script>
+      const ordinalSuffix = (day) => {
+        const value = day % 100;
+        if (value >= 11 && value <= 13) return "th";
+        switch (day % 10) {
+          case 1:
+            return "st";
+          case 2:
+            return "nd";
+          case 3:
+            return "rd";
+          default:
+            return "th";
+        }
+      };
+
       const formatDate = (isoDate) => {
         if (!isoDate) return "—";
         const date = new Date(`${isoDate}T00:00:00`);
         const day = date.getDate();
         const month = date.toLocaleDateString(undefined, { month: "short" });
-        return `${month} ${day}`;
+        const weekday = date.toLocaleDateString(undefined, { weekday: "long" });
+        return `${weekday}, ${month} ${day}${ordinalSuffix(day)}`;
+      };
+
+      const formatRelative = (isoDate) => {
+        if (!isoDate) return "—";
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const target = new Date(`${isoDate}T00:00:00`);
+        const diff = Math.round((target - start) / (1000 * 60 * 60 * 24));
+        if (diff === 0) return "Today";
+        if (diff === 1) return "In 1 day";
+        if (diff > 1) return `In ${diff} days`;
+        if (diff === -1) return "1 day ago";
+        return `${Math.abs(diff)} days ago`;
       };
 
       const formatTime = (timeValue) => {
@@ -271,7 +343,7 @@
         container,
         items,
         emptyText,
-        { highlightDays = 3, showDate = true } = {}
+        { highlightDays = 3, showDate = true, cardClass = "" } = {}
       ) => {
         container.innerHTML = "";
         if (!items.length) {
@@ -283,7 +355,7 @@
         }
         items.forEach((item) => {
           const card = document.createElement("div");
-          card.className = "card event";
+          card.className = `card event ${cardClass}`.trim();
           if (item.days_until !== undefined && item.days_until <= highlightDays) {
             card.classList.add("highlight");
           }
@@ -299,9 +371,11 @@
           meta.className = "meta";
           const timeText = item.time ? formatTime(item.time) : "";
           if (showDate) {
+            const relative = formatRelative(item.date);
+            const dateText = formatDate(item.date);
             meta.textContent = timeText
-              ? `${formatDate(item.date)} · ${timeText}`
-              : formatDate(item.date);
+              ? `${relative} · ${dateText} · ${timeText}`
+              : `${relative} · ${dateText}`;
           } else {
             meta.textContent = timeText || "—";
           }
@@ -339,7 +413,7 @@
         }
         items.forEach((item) => {
           const card = document.createElement("div");
-          card.className = "card event";
+          card.className = "card event accent-outline";
 
           const row = document.createElement("div");
           row.className = "row";
@@ -352,9 +426,11 @@
           meta.className = "meta";
           const dateValue = item.date || item.next_occurrence;
           const timeText = item.time ? formatTime(item.time) : "";
+          const relative = formatRelative(dateValue);
+          const dateText = formatDate(dateValue);
           meta.textContent = timeText
-            ? `${formatDate(dateValue)} · ${timeText}`
-            : formatDate(dateValue);
+            ? `${relative} · ${dateText} · ${timeText}`
+            : `${relative} · ${dateText}`;
 
           row.appendChild(title);
           row.appendChild(meta);
@@ -389,7 +465,7 @@
         }
         items.forEach((item) => {
           const card = document.createElement("div");
-          card.className = "card event";
+          card.className = "card event accent-outline";
 
           const row = document.createElement("div");
           row.className = "row";
@@ -425,6 +501,29 @@
 
       let dashboardCache = null;
 
+      const buildRecurringWindow = (calendarItems, recurringItems, days) => {
+        const now = new Date();
+        const end = new Date(now);
+        end.setDate(now.getDate() + days - 1);
+        const timeMap = new Map(
+          (recurringItems || []).map((item) => [item.title, item.recurrence?.time])
+        );
+        const results = (calendarItems || [])
+          .filter((item) => item.source === "recurring")
+          .filter((item) => {
+            const date = new Date(`${item.date}T00:00:00`);
+            return date >= now && date <= end;
+          })
+          .map((item) => ({
+            title: item.title,
+            date: item.date,
+            time: timeMap.get(item.title),
+          }));
+        return results.sort((a, b) =>
+          a.date === b.date ? a.title.localeCompare(b.title) : a.date.localeCompare(b.date)
+        );
+      };
+
       const loadDashboard = async () => {
         try {
           const path = window.location.pathname;
@@ -440,16 +539,40 @@
           );
           dashboardCache = { ...data, recurringTitles };
 
-          renderList(
-            document.getElementById("today"),
-            data.left.today,
-            "No events today.",
-            { showDate: false }
+          const todayPrimary = (data.left.today || []).filter(
+            (item) => item.source !== "recurring"
+          );
+          const todayRecurring = (data.left.today || []).filter(
+            (item) => item.source === "recurring"
           );
           renderList(
-            document.getElementById("now"),
+            document.getElementById("today-primary"),
+            todayPrimary,
+            "No focus items today.",
+            { showDate: true }
+          );
+          renderList(
+            document.getElementById("today-recurring"),
+            todayRecurring,
+            "No recurring today.",
+            { showDate: true, cardClass: "accent-outline" }
+          );
+
+          const nowRecurring = buildRecurringWindow(
+            data.calendar,
+            data.right.recurring,
+            7
+          );
+          renderList(
+            document.getElementById("now-primary"),
             data.left.now,
             "Nothing in the next 7 days."
+          );
+          renderList(
+            document.getElementById("now-recurring"),
+            nowRecurring,
+            "No recurring in the next 7 days.",
+            { cardClass: "accent-outline" }
           );
           renderList(
             document.getElementById("soon"),
