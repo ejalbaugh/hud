@@ -226,6 +226,12 @@
 
       <section aria-label="Next 28 day calendar">
         <h2>Next 28 Days</h2>
+        <div class="meta" style="margin-bottom: 8px;">
+          <label style="display: inline-flex; align-items: center; gap: 6px;">
+            <input type="checkbox" id="toggle-recurring" checked />
+            Show recurring in calendar
+          </label>
+        </div>
         <div id="calendar-weekdays" class="calendar-weekdays" aria-hidden="true"></div>
         <div id="calendar" class="calendar-grid" role="grid"></div>
       </section>
@@ -407,10 +413,19 @@
         });
       };
 
+      let dashboardCache = null;
+
       const loadDashboard = async () => {
         try {
-          const response = await fetch(`dashboard.json?ts=${Date.now()}`, { cache: "no-store" });
+          const path = window.location.pathname;
+          const base = path.endsWith("/")
+            ? path
+            : path.slice(0, path.lastIndexOf("/") + 1);
+          const response = await fetch(`${base}dashboard.json?ts=${Date.now()}`, {
+            cache: "no-store",
+          });
           const data = await response.json();
+          dashboardCache = data;
 
           renderList(
             document.getElementById("today"),
@@ -449,7 +464,7 @@
           }
         } catch (error) {
           document.getElementById("now").innerHTML =
-            '<div class="card">Unable to load dashboard.json</div>';
+            '<div class="card">Unable to load dashboard.json. Try reloading.</div>';
         }
       };
 
@@ -460,8 +475,10 @@
         const todayIso = start.toISOString().slice(0, 10);
 
         const map = new Map();
+        const showRecurring = document.getElementById("toggle-recurring")?.checked ?? true;
         (calendarItems || []).forEach((item) => {
           if (!item.date) return;
+          if (!showRecurring && item.source === "recurring") return;
           if (!map.has(item.date)) {
             map.set(item.date, []);
           }
@@ -507,6 +524,14 @@
           container.appendChild(cell);
         }
       };
+
+      document
+        .getElementById("toggle-recurring")
+        .addEventListener("change", () => {
+          if (dashboardCache) {
+            renderCalendar(document.getElementById("calendar"), dashboardCache.calendar);
+          }
+        });
 
       loadDashboard();
     </script>

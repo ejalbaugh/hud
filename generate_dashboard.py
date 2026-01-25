@@ -252,10 +252,13 @@ def main() -> None:
             item["days_until"] = (next_date - today).days
 
     calendar_items = [
-        {"title": item["title"], "date": item["date"]}
+        {"title": item["title"], "date": item["date"], "source": "left"}
         for item in left_items
         if 0 <= (parse_date(item["date"]) - today).days <= 27
-    ] + [{"title": item["title"], "date": item["date"]} for item in recurring_occurrences]
+    ] + [
+        {"title": item["title"], "date": item["date"], "source": "recurring"}
+        for item in recurring_occurrences
+    ]
 
     def calendar_sort(entry: dict) -> tuple:
         return (entry["date"], entry["title"])
