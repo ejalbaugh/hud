@@ -190,6 +190,11 @@
 
       <div class="grid">
         <div class="left">
+          <section class="today">
+            <h2>Today</h2>
+            <div id="today"></div>
+          </section>
+
           <section class="now">
             <h2>Now</h2>
             <div id="now"></div>
@@ -208,8 +213,13 @@
 
         <div class="right">
           <section>
-            <h2>Appointments & Recurring</h2>
-            <div id="right"></div>
+            <h2>Appointments</h2>
+            <div id="appointments"></div>
+          </section>
+
+          <section>
+            <h2>Recurring</h2>
+            <div id="recurring"></div>
           </section>
         </div>
       </div>
@@ -232,7 +242,21 @@
         return `${month} ${day}`;
       };
 
-      const renderList = (container, items, emptyText, highlightDays = 3) => {
+      const formatTime = (timeValue) => {
+        if (!timeValue) return "";
+        const [hour, minute] = timeValue.split(":").map(Number);
+        if (Number.isNaN(hour) || Number.isNaN(minute)) return timeValue;
+        const suffix = hour >= 12 ? "PM" : "AM";
+        const adjusted = hour % 12 || 12;
+        return `${adjusted}:${String(minute).padStart(2, "0")} ${suffix}`;
+      };
+
+      const renderList = (
+        container,
+        items,
+        emptyText,
+        { highlightDays = 3, showDate = true } = {}
+      ) => {
         container.innerHTML = "";
         if (!items.length) {
           const empty = document.createElement("div");
@@ -257,7 +281,14 @@
 
           const meta = document.createElement("div");
           meta.className = "meta";
-          meta.textContent = formatDate(item.date);
+          const timeText = item.time ? formatTime(item.time) : "";
+          if (showDate) {
+            meta.textContent = timeText
+              ? `${formatDate(item.date)} · ${timeText}`
+              : formatDate(item.date);
+          } else {
+            meta.textContent = timeText || "—";
+          }
 
           row.appendChild(title);
           row.appendChild(meta);
@@ -281,12 +312,12 @@
         });
       };
 
-      const renderRight = (container, items) => {
+      const renderAppointments = (container, items) => {
         container.innerHTML = "";
         if (!items.length) {
           const empty = document.createElement("div");
           empty.className = "card empty";
-          empty.textContent = "No reference items yet.";
+          empty.textContent = "No appointments yet.";
           container.appendChild(empty);
           return;
         }
@@ -303,7 +334,11 @@
 
           const meta = document.createElement("div");
           meta.className = "meta";
-          meta.textContent = formatDate(item.date || item.next_occurrence);
+          const dateValue = item.date || item.next_occurrence;
+          const timeText = item.time ? formatTime(item.time) : "";
+          meta.textContent = timeText
+            ? `${formatDate(dateValue)} · ${timeText}`
+            : formatDate(dateValue);
 
           row.appendChild(title);
           row.appendChild(meta);
@@ -327,11 +362,62 @@
         });
       };
 
+      const renderRecurring = (container, items) => {
+        container.innerHTML = "";
+        if (!items.length) {
+          const empty = document.createElement("div");
+          empty.className = "card empty";
+          empty.textContent = "No recurring items yet.";
+          container.appendChild(empty);
+          return;
+        }
+        items.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card event";
+
+          const row = document.createElement("div");
+          row.className = "row";
+
+          const title = document.createElement("div");
+          title.className = "title";
+          title.textContent = item.title;
+
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          const days = item.recurrence?.days?.length
+            ? item.recurrence.days.join(", ")
+            : "Weekly";
+          const timeText = item.recurrence?.time
+            ? ` · ${formatTime(item.recurrence.time)}`
+            : "";
+          meta.textContent = `${days}${timeText}`;
+
+          row.appendChild(title);
+          row.appendChild(meta);
+          card.appendChild(row);
+
+          if (item.notes) {
+            const notes = document.createElement("div");
+            notes.className = "notes";
+            notes.textContent = item.notes;
+            card.appendChild(notes);
+          }
+
+          container.appendChild(card);
+        });
+      };
+
       const loadDashboard = async () => {
         try {
-          const response = await fetch("dashboard.json", { cache: "no-store" });
+          const response = await fetch(`dashboard.json?ts=${Date.now()}`, { cache: "no-store" });
           const data = await response.json();
 
+          renderList(
+            document.getElementById("today"),
+            data.left.today,
+            "No events today.",
+            { showDate: false }
+          );
           renderList(
             document.getElementById("now"),
             data.left.now,
@@ -347,8 +433,15 @@
             data.left.landmarks,
             "No landmarks yet."
           );
-          renderRight(document.getElementById("right"), data.right);
-          renderCalendar(document.getElementById("calendar"), data.left);
+          renderAppointments(
+            document.getElementById("appointments"),
+            data.right.appointments
+          );
+          renderRecurring(
+            document.getElementById("recurring"),
+            data.right.recurring
+          );
+          renderCalendar(document.getElementById("calendar"), data.calendar);
 
           if (data.generated_at) {
             const updated = new Date(data.generated_at);
@@ -360,24 +453,20 @@
         }
       };
 
-      const renderCalendar = (container, left) => {
+      const renderCalendar = (container, calendarItems) => {
         container.innerHTML = "";
         const today = new Date();
         const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const todayIso = start.toISOString().slice(0, 10);
 
         const map = new Map();
-        const addItems = (items) => {
-          items.forEach((item) => {
-            if (!item.date) return;
-            if (!map.has(item.date)) {
-              map.set(item.date, []);
-            }
-            map.get(item.date).push(item.title);
-          });
-        };
-        addItems(left.now || []);
-        addItems(left.soon || []);
+        (calendarItems || []).forEach((item) => {
+          if (!item.date) return;
+          if (!map.has(item.date)) {
+            map.set(item.date, []);
+          }
+          map.get(item.date).push(item.title);
+        });
 
         const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const weekdayRow = document.getElementById("calendar-weekdays");

@@ -109,6 +109,12 @@
         margin-top: 14px;
         font-weight: 600;
       }
+      .publish-btn {
+        background: #20313a;
+      }
+      .publish-btn:hover {
+        background: #2a3f4b;
+      }
       button:hover {
         background: #242b3f;
       }
@@ -136,6 +142,25 @@
       li:first-child {
         border-top: none;
       }
+      .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      .item-text {
+        flex: 1;
+      }
+      .remove-btn {
+        width: auto;
+        padding: 4px 10px;
+        font-size: 12px;
+        margin-top: 0;
+        background: #2a2234;
+      }
+      .remove-btn:hover {
+        background: #33283f;
+      }
       .muted {
         color: var(--muted);
         font-size: 12px;
@@ -144,6 +169,39 @@
         margin-top: 10px;
         font-size: 12px;
         color: var(--muted);
+      }
+      .status-details {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--muted);
+        white-space: pre-wrap;
+        background: #111626;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px;
+        display: none;
+      }
+      .inline-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .inline-row label {
+        margin-top: 0;
+      }
+      .inline-row input[type="checkbox"] {
+        width: auto;
+        margin: 0 6px 0 0;
+      }
+      .field-group {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px dashed var(--border);
+        border-radius: 10px;
+        background: #0f1524;
+      }
+      .hidden {
+        display: none;
       }
     </style>
   </head>
@@ -154,8 +212,11 @@
         Desktop-only editor. Adds to JSON files and regenerates the dashboard.
       </div>
       <div class="header-actions">
-        <button type="button" id="regenerate">Regenerate dashboard.json</button>
+        <button type="button" class="publish-btn" id="update-publish">
+          Update & Publish
+        </button>
         <div class="status" id="regen-status" role="status" aria-live="polite"></div>
+        <div class="status-details" id="publish-details"></div>
       </div>
 
       <div class="grid">
@@ -207,12 +268,36 @@
               <label>Title</label>
               <input name="title" required />
 
-              <label>Date (optional)</label>
-              <input type="date" name="date" />
+              <label>Type</label>
+              <select name="type" id="right-type">
+                <option value="appointment">Appointment</option>
+                <option value="recurring">Recurring</option>
+              </select>
 
-              <label>Next Occurrence (optional)</label>
-              <input type="date" name="next_occurrence" />
-              <div class="preview" id="right-preview"></div>
+              <div class="field-group" id="appointment-fields">
+                <label>Date</label>
+                <input type="date" name="date" />
+
+                <label>Time (optional)</label>
+                <input type="time" name="time" />
+                <div class="preview" id="right-preview"></div>
+              </div>
+
+              <div class="field-group hidden" id="recurring-fields">
+                <label>Days</label>
+                <div class="inline-row">
+                  <label><input type="checkbox" name="recurring_days" value="Mon" />Mon</label>
+                  <label><input type="checkbox" name="recurring_days" value="Tue" />Tue</label>
+                  <label><input type="checkbox" name="recurring_days" value="Wed" />Wed</label>
+                  <label><input type="checkbox" name="recurring_days" value="Thu" />Thu</label>
+                  <label><input type="checkbox" name="recurring_days" value="Fri" />Fri</label>
+                  <label><input type="checkbox" name="recurring_days" value="Sat" />Sat</label>
+                  <label><input type="checkbox" name="recurring_days" value="Sun" />Sun</label>
+                </div>
+
+                <label>Time (optional)</label>
+                <input type="time" name="recurring_time" />
+              </div>
 
               <label>Tag (optional)</label>
               <input name="tag" placeholder="appointment, recurring, etc." />
@@ -264,6 +349,15 @@
         return `${month} ${day}`;
       };
 
+      const formatTime = (timeValue) => {
+        if (!timeValue) return "";
+        const [hour, minute] = timeValue.split(":").map(Number);
+        if (Number.isNaN(hour) || Number.isNaN(minute)) return timeValue;
+        const suffix = hour >= 12 ? "PM" : "AM";
+        const adjusted = hour % 12 || 12;
+        return `${adjusted}:${String(minute).padStart(2, "0")} ${suffix}`;
+      };
+
       const postItem = async (target, item, statusEl, form) => {
         statusEl.textContent = "Saving...";
         const response = await fetch("/api/add", {
@@ -280,6 +374,17 @@
         }
       };
 
+      const deleteItem = async (target, index) => {
+        const response = await fetch("/api/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ target, index }),
+        });
+        if (response.ok) {
+          loadItems();
+        }
+      };
+
       const regenerate = async () => {
         const status = document.getElementById("regen-status");
         status.textContent = "Regenerating...";
@@ -292,15 +397,51 @@
         }
       };
 
+      const publish = async () => {
+        const status = document.getElementById("regen-status");
+        status.textContent = "Publishing...";
+        const response = await fetch("/api/publish", { method: "POST" });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok) {
+          status.textContent = data.message || "Published.";
+        } else {
+          status.textContent = data.error || "Error publishing.";
+        }
+      };
+      
+      const updateAndPublish = async () => {
+        const status = document.getElementById("regen-status");
+        const details = document.getElementById("publish-details");
+        details.style.display = "none";
+        status.textContent = "Updating...";
+        const regen = await fetch("/api/regenerate", { method: "POST" });
+        if (!regen.ok) {
+          status.textContent = "Error regenerating.";
+          return;
+        }
+        status.textContent = "Publishing...";
+        const response = await fetch("/api/publish", { method: "POST" });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok) {
+          status.textContent = data.message || "Published.";
+        } else {
+          status.textContent = data.error || "Error publishing.";
+          if (data.details) {
+            details.textContent = data.details;
+            details.style.display = "block";
+          }
+        }
+      };
+
       const loadItems = async () => {
         const response = await fetch("/api/data");
         const data = await response.json();
         const list = document.getElementById("current-items");
         list.innerHTML = "";
         const sections = [
-          { label: "Left", items: data.left },
-          { label: "Landmarks", items: data.big },
-          { label: "Right", items: data.right },
+          { label: "Left", key: "left", items: data.left },
+          { label: "Landmarks", key: "big", items: data.big },
+          { label: "Right", key: "right", items: data.right },
         ];
         sections.forEach((section) => {
           const header = document.createElement("li");
@@ -313,10 +454,35 @@
             list.appendChild(empty);
             return;
           }
-          section.items.forEach((item) => {
+          section.items.forEach((item, index) => {
             const row = document.createElement("li");
-            const date = item.date || item.next_occurrence || "—";
-            row.textContent = `${item.title} · ${formatDate(date)}`;
+            const wrapper = document.createElement("div");
+            wrapper.className = "item-row";
+
+            const text = document.createElement("div");
+            text.className = "item-text";
+            let summary = "";
+            if (section.key === "right" && item.recurrence) {
+                const days = item.recurrence.days?.join(", ") || "Weekly";
+                const timeText = item.recurrence.time ? ` · ${formatTime(item.recurrence.time)}` : "";
+                summary = `${days}${timeText}`;
+            } else {
+                const date = item.date || item.next_occurrence || "—";
+                const timeText = item.time ? ` · ${formatTime(item.time)}` : "";
+                summary = `${formatDate(date)}${timeText}`;
+            }
+            text.textContent = `${item.title} · ${summary}`;
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "remove-btn";
+            remove.textContent = "Remove";
+            remove.setAttribute("aria-label", `Remove ${item.title}`);
+            remove.addEventListener("click", () => deleteItem(section.key, index));
+
+            wrapper.appendChild(text);
+            wrapper.appendChild(remove);
+            row.appendChild(wrapper);
             list.appendChild(row);
           });
         });
@@ -339,10 +505,27 @@
       document.getElementById("right-form").addEventListener("submit", (event) => {
         event.preventDefault();
         const form = event.target;
-        const item = Object.fromEntries(new FormData(form));
+        const formData = new FormData(form);
+        const type = formData.get("type");
+        const item = {
+          title: formData.get("title"),
+          tag: formData.get("tag") || undefined,
+          notes: formData.get("notes") || undefined,
+        };
+        if (type === "recurring") {
+          const days = formData.getAll("recurring_days");
+          item.recurrence = {
+            freq: "weekly",
+            days,
+            time: formData.get("recurring_time") || undefined,
+          };
+        } else {
+          item.date = formData.get("date") || undefined;
+          item.time = formData.get("time") || undefined;
+        }
         postItem("right", item, document.getElementById("right-status"), form);
       });
-      document.getElementById("regenerate").addEventListener("click", regenerate);
+      document.getElementById("update-publish").addEventListener("click", updateAndPublish);
 
       addDaysPreview(
         document.querySelector("#left-form input[name='date']"),
@@ -356,10 +539,19 @@
         document.querySelector("#right-form input[name='date']"),
         document.getElementById("right-preview")
       );
-      addDaysPreview(
-        document.querySelector("#right-form input[name='next_occurrence']"),
-        document.getElementById("right-preview")
-      );
+      const rightType = document.getElementById("right-type");
+      const appointmentFields = document.getElementById("appointment-fields");
+      const recurringFields = document.getElementById("recurring-fields");
+      rightType.addEventListener("change", () => {
+        if (rightType.value === "recurring") {
+          recurringFields.classList.remove("hidden");
+          appointmentFields.classList.add("hidden");
+        } else {
+          recurringFields.classList.add("hidden");
+          appointmentFields.classList.remove("hidden");
+        }
+      });
+      rightType.dispatchEvent(new Event("change"));
 
       loadItems();
     </script>

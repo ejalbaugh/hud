@@ -1,4 +1,6 @@
 import json
+import subprocess
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -9,6 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 PUBLIC_DIR = BASE_DIR / "public"
 SITE_DIR = BASE_DIR
+LOG_PATH = BASE_DIR / "publish.log"
 
 
 def _load_list(path: Path) -> list[dict]:
@@ -130,6 +133,82 @@ class DashboardHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/regenerate":
             generate_dashboard()
             self._send_json({"ok": True})
+            return
+
+        if parsed.path == "/api/delete":
+            payload = self._read_body()
+            target = payload.get("target")
+            index = payload.get("index")
+            if target not in {"left", "right", "big"} or not isinstance(index, int):
+                self._send_json({"ok": False, "error": "Invalid payload"}, status=400)
+                return
+
+            if target == "left":
+                path = DATA_DIR / "left_column.json"
+            elif target == "right":
+                path = DATA_DIR / "right_column.json"
+            else:
+                path = DATA_DIR / "big_events.json"
+
+            data = _load_list(path)
+            if index < 0 or index >= len(data):
+                self._send_json({"ok": False, "error": "Index out of range"}, status=400)
+                return
+
+            data.pop(index)
+            _save_list(path, data)
+            generate_dashboard()
+            self._send_json({"ok": True})
+            return
+
+        if parsed.path == "/api/publish":
+            try:
+                subprocess.run(
+                    ["git", "add", "dashboard.json"],
+                    cwd=BASE_DIR,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                staged = subprocess.run(
+                    ["git", "diff", "--cached", "--quiet"],
+                    cwd=BASE_DIR,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                if staged.returncode == 1:
+                    subprocess.run(
+                        ["git", "commit", "-m", "Update dashboard"],
+                        cwd=BASE_DIR,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    subprocess.run(
+                        ["git", "push"],
+                        cwd=BASE_DIR,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    self._send_json({"ok": True, "message": "Published to GitHub."})
+                else:
+                    self._send_json({"ok": True, "message": "No dashboard changes to publish."})
+            except subprocess.CalledProcessError as error:
+                details = (error.stderr or error.stdout or "Publish failed").strip()
+                LOG_PATH.write_text(
+                    f"{datetime.now().isoformat(timespec='seconds')}\n{details}\n",
+                    encoding="utf-8",
+                )
+                self._send_json(
+                    {
+                        "ok": False,
+                        "error": "Error publishing.",
+                        "details": details,
+                    },
+                    status=500,
+                )
             return
 
         self.send_error(404)
