@@ -9,18 +9,19 @@
     <style>
       :root {
         color-scheme: dark;
-        --bg: #0c0e16;
-        --panel: #151827;
-        --panel-soft: #101320;
-        --border: #262a3a;
-        --text: #e6e9f2;
-        --muted: #a0a6b8;
+        --bg: #0a0c12;
+        --panel: #1a2032;
+        --panel-soft: #121624;
+        --border: #33405a;
+        --text: #eef1f8;
+        --muted: #b2b9cb;
         --accent: #6bbfbf;
         --soon: #a899e6;
         --landmark: #d9a67c;
         --highlight: #cfa3c4;
         --accent-right: #d1a1cf;
         --focus: #7dd3c7;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
       }
       * {
         box-sizing: border-box;
@@ -36,7 +37,7 @@
       main {
         max-width: 1080px;
         margin: 0 auto;
-        padding: 20px 16px 40px;
+        padding: 16px 14px 28px;
       }
       header {
         margin-bottom: 18px;
@@ -68,14 +69,23 @@
         }
       }
       section {
-        margin-bottom: 24px;
+        margin-bottom: 16px;
+      }
+      .section-wrap {
+        background: linear-gradient(160deg, var(--panel), var(--panel-soft));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 10px 12px;
+        box-shadow: var(--shadow);
       }
       h2 {
         font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 1px;
         color: var(--accent);
-        margin: 0 0 12px;
+        margin: 0 0 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--border);
       }
       .soon h2 {
         color: var(--soon);
@@ -84,11 +94,11 @@
         color: var(--landmark);
       }
       .card {
-        background: linear-gradient(160deg, var(--panel), var(--panel-soft));
+        background: #141a2b;
         border-radius: 12px;
-        padding: 12px 14px;
-        margin-bottom: 12px;
-        border: 1px solid var(--border);
+        padding: 8px 10px;
+        margin-bottom: 8px;
+        border: 1px solid #26314a;
       }
       .row {
         display: flex;
@@ -111,7 +121,7 @@
         color: var(--muted);
       }
       .event {
-        padding: 8px 0;
+        padding: 6px 0;
         border-top: 1px solid var(--border);
       }
       .event:first-child {
@@ -141,13 +151,13 @@
       .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 8px;
+        gap: 6px;
       }
       .calendar-weekdays {
         display: grid;
         grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 8px;
-        margin-bottom: 8px;
+        gap: 6px;
+        margin-bottom: 6px;
       }
       .calendar-weekday {
         font-size: 11px;
@@ -157,14 +167,14 @@
         text-align: center;
       }
       .calendar-cell {
-        background: var(--panel-soft);
-        border: 1px solid var(--border);
+        background: #0f1423;
+        border: 1px solid #2a3550;
         border-radius: 10px;
-        padding: 8px;
-        min-height: 80px;
+        padding: 6px;
+        min-height: 64px;
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
       }
       .calendar-date {
         font-size: 11px;
@@ -176,8 +186,8 @@
       }
       .calendar-cell.today {
         border-color: var(--accent);
-        box-shadow: 0 0 0 1px rgba(107, 191, 191, 0.35);
-        background: #131a25;
+        box-shadow: 0 0 0 2px rgba(107, 191, 191, 0.35);
+        background: #142031;
       }
     </style>
   </head>
@@ -190,41 +200,41 @@
 
       <div class="grid">
         <div class="left">
-          <section class="today">
+          <section class="today section-wrap">
             <h2>Today</h2>
             <div id="today"></div>
           </section>
 
-          <section class="now">
+          <section class="now section-wrap">
             <h2>Now</h2>
             <div id="now"></div>
           </section>
 
-          <section class="soon">
+          <section class="soon section-wrap">
             <h2>Soon</h2>
             <div id="soon"></div>
           </section>
 
-          <section class="landmarks">
+          <section class="landmarks section-wrap">
             <h2>Landmarks</h2>
             <div id="landmarks"></div>
           </section>
         </div>
 
         <div class="right">
-          <section>
+          <section class="section-wrap">
             <h2>Appointments</h2>
             <div id="appointments"></div>
           </section>
 
-          <section>
+          <section class="section-wrap">
             <h2>Recurring</h2>
             <div id="recurring"></div>
           </section>
         </div>
       </div>
 
-      <section aria-label="Next 28 day calendar">
+      <section class="section-wrap" aria-label="Next 28 day calendar">
         <h2>Next 28 Days</h2>
         <div class="meta" style="margin-bottom: 8px;">
           <label style="display: inline-flex; align-items: center; gap: 6px;">
@@ -244,7 +254,7 @@
         if (!isoDate) return "—";
         const date = new Date(`${isoDate}T00:00:00`);
         const day = date.getDate();
-        const month = date.toLocaleDateString(undefined, { month: "long" });
+        const month = date.toLocaleDateString(undefined, { month: "short" });
         return `${month} ${day}`;
       };
 
@@ -425,7 +435,10 @@
             cache: "no-store",
           });
           const data = await response.json();
-          dashboardCache = data;
+          const recurringTitles = new Set(
+            (data.right.recurring || []).map((item) => item.title)
+          );
+          dashboardCache = { ...data, recurringTitles };
 
           renderList(
             document.getElementById("today"),
@@ -456,7 +469,11 @@
             document.getElementById("recurring"),
             data.right.recurring
           );
-          renderCalendar(document.getElementById("calendar"), data.calendar);
+          renderCalendar(
+            document.getElementById("calendar"),
+            data.calendar,
+            recurringTitles
+          );
 
           if (data.generated_at) {
             const updated = new Date(data.generated_at);
@@ -468,7 +485,7 @@
         }
       };
 
-      const renderCalendar = (container, calendarItems) => {
+      const renderCalendar = (container, calendarItems, recurringTitles = new Set()) => {
         container.innerHTML = "";
         const today = new Date();
         const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -478,7 +495,12 @@
         const showRecurring = document.getElementById("toggle-recurring")?.checked ?? true;
         (calendarItems || []).forEach((item) => {
           if (!item.date) return;
-          if (!showRecurring && item.source === "recurring") return;
+          if (!showRecurring) {
+            const isRecurring =
+              item.source === "recurring" ||
+              (!item.source && recurringTitles.has(item.title));
+            if (isRecurring) return;
+          }
           if (!map.has(item.date)) {
             map.set(item.date, []);
           }
@@ -529,7 +551,11 @@
         .getElementById("toggle-recurring")
         .addEventListener("change", () => {
           if (dashboardCache) {
-            renderCalendar(document.getElementById("calendar"), dashboardCache.calendar);
+            renderCalendar(
+              document.getElementById("calendar"),
+              dashboardCache.calendar,
+              dashboardCache.recurringTitles
+            );
           }
         });
 
