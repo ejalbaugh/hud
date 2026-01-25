@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0c0e16" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <title>Personal Future Dashboard</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0c0e16;
+        --panel: #151827;
+        --panel-soft: #101320;
+        --border: #262a3a;
+        --text: #e6e9f2;
+        --muted: #a0a6b8;
+        --accent: #6bbfbf;
+        --soon: #a899e6;
+        --landmark: #d9a67c;
+        --highlight: #cfa3c4;
+        --accent-right: #d1a1cf;
+        --focus: #7dd3c7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+          "Apple Color Emoji", "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 20px 16px 40px;
+      }
+      header {
+        margin-bottom: 18px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 6px;
+        letter-spacing: 0.5px;
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .grid {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      @media (min-width: 900px) {
+        .grid {
+          display: grid;
+          grid-template-columns: 1.4fr 1fr;
+          gap: 32px;
+        }
+        .right {
+          position: sticky;
+          top: 16px;
+          align-self: start;
+        }
+      }
+      section {
+        margin-bottom: 24px;
+      }
+      h2 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--accent);
+        margin: 0 0 12px;
+      }
+      .soon h2 {
+        color: var(--soon);
+      }
+      .landmarks h2 {
+        color: var(--landmark);
+      }
+      .card {
+        background: linear-gradient(160deg, var(--panel), var(--panel-soft));
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        border: 1px solid var(--border);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .title {
+        font-weight: 600;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .chip {
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #1f2937;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .event {
+        padding: 8px 0;
+        border-top: 1px solid var(--border);
+      }
+      .event:first-child {
+        border-top: none;
+      }
+      .event.highlight .title {
+        color: var(--highlight);
+      }
+      .empty {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .right h2 {
+        color: var(--accent-right);
+      }
+      .notes {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      .footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 30px;
+      }
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .calendar-weekday {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted);
+        text-align: center;
+      }
+      .calendar-cell {
+        background: var(--panel-soft);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 8px;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .calendar-date {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .calendar-title {
+        font-size: 12px;
+        color: var(--text);
+      }
+      .calendar-cell.today {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(107, 191, 191, 0.35);
+        background: #131a25;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Personal Future Dashboard</h1>
+        <div class="subtitle">Read-only orientation for the days ahead.</div>
+      </header>
+
+      <div class="grid">
+        <div class="left">
+          <section class="now">
+            <h2>Now</h2>
+            <div id="now"></div>
+          </section>
+
+          <section class="soon">
+            <h2>Soon</h2>
+            <div id="soon"></div>
+          </section>
+
+          <section class="landmarks">
+            <h2>Landmarks</h2>
+            <div id="landmarks"></div>
+          </section>
+        </div>
+
+        <div class="right">
+          <section>
+            <h2>Appointments & Recurring</h2>
+            <div id="right"></div>
+          </section>
+        </div>
+      </div>
+
+      <section aria-label="Next 28 day calendar">
+        <h2>Next 28 Days</h2>
+        <div id="calendar-weekdays" class="calendar-weekdays" aria-hidden="true"></div>
+        <div id="calendar" class="calendar-grid" role="grid"></div>
+      </section>
+
+      <div class="footer" id="updated"></div>
+    </main>
+
+    <script>
+      const formatDate = (isoDate) => {
+        if (!isoDate) return "—";
+        const date = new Date(`${isoDate}T00:00:00`);
+        const day = date.getDate();
+        const month = date.toLocaleDateString(undefined, { month: "long" });
+        return `${month} ${day}`;
+      };
+
+      const renderList = (container, items, emptyText, highlightDays = 3) => {
+        container.innerHTML = "";
+        if (!items.length) {
+          const empty = document.createElement("div");
+          empty.className = "card empty";
+          empty.textContent = emptyText;
+          container.appendChild(empty);
+          return;
+        }
+        items.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card event";
+          if (item.days_until !== undefined && item.days_until <= highlightDays) {
+            card.classList.add("highlight");
+          }
+
+          const row = document.createElement("div");
+          row.className = "row";
+
+          const title = document.createElement("div");
+          title.className = "title";
+          title.textContent = item.title;
+
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          meta.textContent = formatDate(item.date);
+
+          row.appendChild(title);
+          row.appendChild(meta);
+          card.appendChild(row);
+
+          if (item.tag) {
+            const chip = document.createElement("div");
+            chip.className = "chip";
+            chip.textContent = item.tag;
+            card.appendChild(chip);
+          }
+
+          if (item.notes) {
+            const notes = document.createElement("div");
+            notes.className = "notes";
+            notes.textContent = item.notes;
+            card.appendChild(notes);
+          }
+
+          container.appendChild(card);
+        });
+      };
+
+      const renderRight = (container, items) => {
+        container.innerHTML = "";
+        if (!items.length) {
+          const empty = document.createElement("div");
+          empty.className = "card empty";
+          empty.textContent = "No reference items yet.";
+          container.appendChild(empty);
+          return;
+        }
+        items.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card event";
+
+          const row = document.createElement("div");
+          row.className = "row";
+
+          const title = document.createElement("div");
+          title.className = "title";
+          title.textContent = item.title;
+
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          meta.textContent = formatDate(item.date || item.next_occurrence);
+
+          row.appendChild(title);
+          row.appendChild(meta);
+          card.appendChild(row);
+
+          if (item.tag) {
+            const chip = document.createElement("div");
+            chip.className = "chip";
+            chip.textContent = item.tag;
+            card.appendChild(chip);
+          }
+
+          if (item.notes) {
+            const notes = document.createElement("div");
+            notes.className = "notes";
+            notes.textContent = item.notes;
+            card.appendChild(notes);
+          }
+
+          container.appendChild(card);
+        });
+      };
+
+      const loadDashboard = async () => {
+        try {
+          const response = await fetch("dashboard.json", { cache: "no-store" });
+          const data = await response.json();
+
+          renderList(
+            document.getElementById("now"),
+            data.left.now,
+            "Nothing in the next 7 days."
+          );
+          renderList(
+            document.getElementById("soon"),
+            data.left.soon,
+            "Nothing else in the next 30 days."
+          );
+          renderList(
+            document.getElementById("landmarks"),
+            data.left.landmarks,
+            "No landmarks yet."
+          );
+          renderRight(document.getElementById("right"), data.right);
+          renderCalendar(document.getElementById("calendar"), data.left);
+
+          if (data.generated_at) {
+            const updated = new Date(data.generated_at);
+            document.getElementById("updated").textContent = `Updated ${updated.toLocaleString()}`;
+          }
+        } catch (error) {
+          document.getElementById("now").innerHTML =
+            '<div class="card">Unable to load dashboard.json</div>';
+        }
+      };
+
+      const renderCalendar = (container, left) => {
+        container.innerHTML = "";
+        const today = new Date();
+        const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const todayIso = start.toISOString().slice(0, 10);
+
+        const map = new Map();
+        const addItems = (items) => {
+          items.forEach((item) => {
+            if (!item.date) return;
+            if (!map.has(item.date)) {
+              map.set(item.date, []);
+            }
+            map.get(item.date).push(item.title);
+          });
+        };
+        addItems(left.now || []);
+        addItems(left.soon || []);
+
+        const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const weekdayRow = document.getElementById("calendar-weekdays");
+        if (weekdayRow) {
+          weekdayRow.innerHTML = "";
+          weekdays.forEach((label) => {
+            const cell = document.createElement("div");
+            cell.className = "calendar-weekday";
+            cell.textContent = label;
+            weekdayRow.appendChild(cell);
+          });
+        }
+
+        for (let i = 0; i < 28; i += 1) {
+          const cellDate = new Date(start);
+          cellDate.setDate(start.getDate() + i);
+          const iso = cellDate.toISOString().slice(0, 10);
+
+          const cell = document.createElement("div");
+          cell.className = "calendar-cell";
+          if (iso === todayIso) {
+            cell.classList.add("today");
+          }
+
+          const label = document.createElement("div");
+          label.className = "calendar-date";
+          label.textContent = formatDate(iso);
+          cell.appendChild(label);
+
+          const events = map.get(iso) || [];
+          events.forEach((title) => {
+            const event = document.createElement("div");
+            event.className = "calendar-title";
+            event.textContent = title;
+            cell.appendChild(event);
+          });
+
+          container.appendChild(cell);
+        }
+      };
+
+      loadDashboard();
+    </script>
+  </body>
+</html>

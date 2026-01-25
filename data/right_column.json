@@ -1,0 +1,9 @@
+[
+  {
+    "title": "Appointment A",
+    "date": "2026-01-28",
+    "notes": "Optional notes",
+    "tag": "appointment"
+  },
+  { "title": "Recurring Event X", "next_occurrence": "2026-01-30", "tag": "recurring" }
+]

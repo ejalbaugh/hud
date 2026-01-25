@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0c0e16" />
+    <title>Dashboard Editor</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0c0e16;
+        --panel: #151827;
+        --panel-soft: #101320;
+        --border: #262a3a;
+        --text: #e6e9f2;
+        --muted: #a0a6b8;
+        --accent: #6bbfbf;
+        --accent2: #a899e6;
+        --focus: #7dd3c7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+          "Apple Color Emoji", "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+      main {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px 16px 40px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 6px;
+      }
+      .header-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+      .header-actions .status {
+        margin-top: 0;
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 18px;
+      }
+      .grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      @media (min-width: 920px) {
+        .grid {
+          display: grid;
+          grid-template-columns: 1.2fr 1fr;
+          gap: 24px;
+        }
+      }
+      .card {
+        background: linear-gradient(160deg, var(--panel), var(--panel-soft));
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+      }
+      h2 {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--accent);
+        margin: 0 0 10px;
+      }
+      .right h2 {
+        color: var(--accent2);
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+      input,
+      textarea,
+      select,
+      button {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--panel-soft);
+        color: var(--text);
+        font-size: 15px;
+        margin-top: 4px;
+      }
+      textarea {
+        min-height: 64px;
+        resize: vertical;
+      }
+      button {
+        background: #1d2436;
+        cursor: pointer;
+        margin-top: 14px;
+        font-weight: 600;
+      }
+      button:hover {
+        background: #242b3f;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      select:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+      }
+      .preview {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 12px 0 0;
+      }
+      li {
+        padding: 8px 0;
+        border-top: 1px solid var(--border);
+      }
+      li:first-child {
+        border-top: none;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .status {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Dashboard Editor</h1>
+      <div class="subtitle">
+        Desktop-only editor. Adds to JSON files and regenerates the dashboard.
+      </div>
+      <div class="header-actions">
+        <button type="button" id="regenerate">Regenerate dashboard.json</button>
+        <div class="status" id="regen-status" role="status" aria-live="polite"></div>
+      </div>
+
+      <div class="grid">
+        <div class="left">
+          <div class="card">
+            <h2>Left Column Events</h2>
+            <form id="left-form">
+              <label>Title</label>
+              <input name="title" required />
+
+              <label>Date</label>
+              <input type="date" name="date" required />
+              <div class="preview" id="left-preview"></div>
+
+              <label>Tag (optional)</label>
+              <input name="tag" placeholder="trip, birthday, etc." />
+
+              <label>Notes (optional)</label>
+              <textarea name="notes" placeholder="Optional notes"></textarea>
+
+              <button type="submit">Add to Left Column</button>
+              <div class="status" id="left-status" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+
+          <div class="card" style="margin-top: 16px;">
+            <h2>Landmarks (Big Events)</h2>
+            <form id="big-form">
+              <label>Title</label>
+              <input name="title" required />
+
+              <label>Date</label>
+              <input type="date" name="date" required />
+              <div class="preview" id="big-preview"></div>
+
+              <label>Notes (optional)</label>
+              <textarea name="notes" placeholder="Optional notes"></textarea>
+
+              <button type="submit">Add Landmark</button>
+              <div class="status" id="big-status" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+        </div>
+
+        <div class="right">
+          <div class="card">
+            <h2>Right Column Reference</h2>
+            <form id="right-form">
+              <label>Title</label>
+              <input name="title" required />
+
+              <label>Date (optional)</label>
+              <input type="date" name="date" />
+
+              <label>Next Occurrence (optional)</label>
+              <input type="date" name="next_occurrence" />
+              <div class="preview" id="right-preview"></div>
+
+              <label>Tag (optional)</label>
+              <input name="tag" placeholder="appointment, recurring, etc." />
+
+              <label>Notes (optional)</label>
+              <textarea name="notes" placeholder="Optional notes"></textarea>
+
+              <button type="submit">Add Reference Item</button>
+              <div class="status" id="right-status" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+
+          <div class="card" style="margin-top: 16px;">
+            <h2>Current Items</h2>
+            <div class="muted">Loaded from local JSON files.</div>
+            <ul id="current-items"></ul>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const addDaysPreview = (input, target) => {
+        const update = () => {
+          if (!input.value) {
+            target.textContent = "";
+            return;
+          }
+          const today = new Date();
+          const chosen = new Date(`${input.value}T00:00:00`);
+          const diff = Math.round(
+            (chosen - new Date(today.toDateString())) / (1000 * 60 * 60 * 24)
+          );
+          if (Number.isNaN(diff)) {
+            target.textContent = "";
+            return;
+          }
+          target.textContent = diff >= 0 ? `In ${diff} days` : `${Math.abs(diff)} days ago`;
+        };
+        input.addEventListener("input", update);
+        update();
+      };
+
+      const formatDate = (isoDate) => {
+        if (!isoDate || isoDate === "—") return "—";
+        const date = new Date(`${isoDate}T00:00:00`);
+        const day = date.getDate();
+        const month = date.toLocaleDateString(undefined, { month: "long" });
+        return `${month} ${day}`;
+      };
+
+      const postItem = async (target, item, statusEl, form) => {
+        statusEl.textContent = "Saving...";
+        const response = await fetch("/api/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ target, item }),
+        });
+        if (response.ok) {
+          statusEl.textContent = "Saved.";
+          form.reset();
+          loadItems();
+        } else {
+          statusEl.textContent = "Error saving.";
+        }
+      };
+
+      const regenerate = async () => {
+        const status = document.getElementById("regen-status");
+        status.textContent = "Regenerating...";
+        const response = await fetch("/api/regenerate", { method: "POST" });
+        if (response.ok) {
+          status.textContent = "Dashboard regenerated.";
+          loadItems();
+        } else {
+          status.textContent = "Error regenerating.";
+        }
+      };
+
+      const loadItems = async () => {
+        const response = await fetch("/api/data");
+        const data = await response.json();
+        const list = document.getElementById("current-items");
+        list.innerHTML = "";
+        const sections = [
+          { label: "Left", items: data.left },
+          { label: "Landmarks", items: data.big },
+          { label: "Right", items: data.right },
+        ];
+        sections.forEach((section) => {
+          const header = document.createElement("li");
+          header.innerHTML = `<strong>${section.label}</strong>`;
+          list.appendChild(header);
+          if (!section.items.length) {
+            const empty = document.createElement("li");
+            empty.className = "muted";
+            empty.textContent = "No items.";
+            list.appendChild(empty);
+            return;
+          }
+          section.items.forEach((item) => {
+            const row = document.createElement("li");
+            const date = item.date || item.next_occurrence || "—";
+            row.textContent = `${item.title} · ${formatDate(date)}`;
+            list.appendChild(row);
+          });
+        });
+      };
+
+      document.getElementById("left-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const form = event.target;
+        const item = Object.fromEntries(new FormData(form));
+        postItem("left", item, document.getElementById("left-status"), form);
+      });
+
+      document.getElementById("big-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const form = event.target;
+        const item = Object.fromEntries(new FormData(form));
+        postItem("big", item, document.getElementById("big-status"), form);
+      });
+
+      document.getElementById("right-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const form = event.target;
+        const item = Object.fromEntries(new FormData(form));
+        postItem("right", item, document.getElementById("right-status"), form);
+      });
+      document.getElementById("regenerate").addEventListener("click", regenerate);
+
+      addDaysPreview(
+        document.querySelector("#left-form input[name='date']"),
+        document.getElementById("left-preview")
+      );
+      addDaysPreview(
+        document.querySelector("#big-form input[name='date']"),
+        document.getElementById("big-preview")
+      );
+      addDaysPreview(
+        document.querySelector("#right-form input[name='date']"),
+        document.getElementById("right-preview")
+      );
+      addDaysPreview(
+        document.querySelector("#right-form input[name='next_occurrence']"),
+        document.getElementById("right-preview")
+      );
+
+      loadItems();
+    </script>
+  </body>
+</html>
