@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-25T12:54:13",
+  "generated_at": "2026-01-25T13:08:34",
   "left": {
     "today": [],
     "now": [],
@@ -14,20 +14,23 @@
     "landmarks": [
       {
         "title": "Daniel's Bachelor Party (Bend)",
-        "date": "2026-04-09",
-        "days_until": 74
+        "date": "2026-04-09"
       },
       {
         "title": "Anna Weeks' Wedding (Nashville)",
         "date": "2026-04-15",
-        "notes": "Flying out day before",
-        "days_until": 80
+        "notes": "Flying out day before"
       },
       {
-        "title": "2026 Camping Trip",
+        "title": "Camping Trip",
         "date": "2026-05-28",
-        "notes": "Marblemount Campsite. Going up on Thursday to Brew's House",
-        "days_until": 123
+        "end_date": "2026-05-31",
+        "notes": "Marblemount Campsite. No boats, yes fire! Mike has axe. Meeting in portland on Thursday night and driving to Seattle. "
+      },
+      {
+        "title": "Camping Trip",
+        "date": "2026-05-28",
+        "end_date": "2026-05-31"
       }
     ]
   },
@@ -76,71 +79,88 @@
   "calendar": [
     {
       "title": "Dr. Cody",
-      "date": "2026-01-26"
+      "date": "2026-01-26",
+      "source": "recurring"
     },
     {
       "title": "Pilates",
-      "date": "2026-01-26"
+      "date": "2026-01-26",
+      "source": "recurring"
     },
     {
       "title": "Pilates",
-      "date": "2026-01-28"
+      "date": "2026-01-28",
+      "source": "recurring"
     },
     {
       "title": "Dr. Cody",
-      "date": "2026-01-30"
+      "date": "2026-01-30",
+      "source": "recurring"
     },
     {
       "title": "Dr. Cody",
-      "date": "2026-02-02"
+      "date": "2026-02-02",
+      "source": "recurring"
     },
     {
       "title": "Pilates",
-      "date": "2026-02-02"
+      "date": "2026-02-02",
+      "source": "recurring"
     },
     {
       "title": "Pilates",
-      "date": "2026-02-04"
+      "date": "2026-02-04",
+      "source": "recurring"
     },
     {
       "title": "Dr. Cody",
-      "date": "2026-02-06"
+      "date": "2026-02-06",
+      "source": "recurring"
     },
     {
       "title": "Dr. Cody",
-      "date": "2026-02-09"
+      "date": "2026-02-09",
+      "source": "recurring"
     },
     {
       "title": "Pilates",
-      "date": "2026-02-09"
+      "date": "2026-02-09",
+      "source": "recurring"
     },
     {
       "title": "Pilates",
-      "date": "2026-02-11"
+      "date": "2026-02-11",
+      "source": "recurring"
     },
     {
       "title": "Dr. Cody",
-      "date": "2026-02-13"
+      "date": "2026-02-13",
+      "source": "recurring"
     },
     {
       "title": "Dr. Cody",
-      "date": "2026-02-16"
+      "date": "2026-02-16",
+      "source": "recurring"
     },
     {
       "title": "Pilates",
-      "date": "2026-02-16"
+      "date": "2026-02-16",
+      "source": "recurring"
     },
     {
       "title": "Pilates",
-      "date": "2026-02-18"
+      "date": "2026-02-18",
+      "source": "recurring"
     },
     {
       "title": "Dr. Cody",
-      "date": "2026-02-20"
+      "date": "2026-02-20",
+      "source": "recurring"
     },
     {
       "title": "Brock's Birthday @ Ultrazone",
-      "date": "2026-02-21"
+      "date": "2026-02-21",
+      "source": "left"
     }
   ]
 }
