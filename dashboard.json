@@ -1,9 +1,117 @@
 {
-  "generated_at": "2026-01-25T12:26:41",
+  "generated_at": "2026-01-25T12:37:15",
   "left": {
+    "today": [],
     "now": [],
     "soon": [],
     "landmarks": []
   },
-  "right": []
+  "right": {
+    "appointments": [],
+    "recurring": [
+      {
+        "title": "Pilates",
+        "recurrence": {
+          "freq": "weekly",
+          "days": [
+            "Mon",
+            "Wed"
+          ],
+          "time": "17:15"
+        },
+        "next_occurrence": "2026-01-26",
+        "days_until": 1
+      },
+      {
+        "title": "Dr. Cody",
+        "recurrence": {
+          "freq": "weekly",
+          "days": [
+            "Mon"
+          ],
+          "time": "13:00"
+        },
+        "next_occurrence": "2026-01-26",
+        "days_until": 1
+      },
+      {
+        "title": "Dr. Cody",
+        "recurrence": {
+          "freq": "weekly",
+          "days": [
+            "Fri"
+          ],
+          "time": "14:30"
+        },
+        "next_occurrence": "2026-01-30",
+        "days_until": 5
+      }
+    ]
+  },
+  "calendar": [
+    {
+      "title": "Dr. Cody",
+      "date": "2026-01-26"
+    },
+    {
+      "title": "Pilates",
+      "date": "2026-01-26"
+    },
+    {
+      "title": "Pilates",
+      "date": "2026-01-28"
+    },
+    {
+      "title": "Dr. Cody",
+      "date": "2026-01-30"
+    },
+    {
+      "title": "Dr. Cody",
+      "date": "2026-02-02"
+    },
+    {
+      "title": "Pilates",
+      "date": "2026-02-02"
+    },
+    {
+      "title": "Pilates",
+      "date": "2026-02-04"
+    },
+    {
+      "title": "Dr. Cody",
+      "date": "2026-02-06"
+    },
+    {
+      "title": "Dr. Cody",
+      "date": "2026-02-09"
+    },
+    {
+      "title": "Pilates",
+      "date": "2026-02-09"
+    },
+    {
+      "title": "Pilates",
+      "date": "2026-02-11"
+    },
+    {
+      "title": "Dr. Cody",
+      "date": "2026-02-13"
+    },
+    {
+      "title": "Dr. Cody",
+      "date": "2026-02-16"
+    },
+    {
+      "title": "Pilates",
+      "date": "2026-02-16"
+    },
+    {
+      "title": "Pilates",
+      "date": "2026-02-18"
+    },
+    {
+      "title": "Dr. Cody",
+      "date": "2026-02-20"
+    }
+  ]
 }
