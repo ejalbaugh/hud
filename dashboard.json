@@ -1,9 +1,16 @@
 {
-  "generated_at": "2026-01-25T12:50:12",
+  "generated_at": "2026-01-25T12:54:13",
   "left": {
     "today": [],
     "now": [],
-    "soon": [],
+    "soon": [
+      {
+        "title": "Brock's Birthday @ Ultrazone",
+        "date": "2026-02-21",
+        "notes": "6pm",
+        "days_until": 27
+      }
+    ],
     "landmarks": [
       {
         "title": "Daniel's Bachelor Party (Bend)",
@@ -130,6 +137,10 @@
     {
       "title": "Dr. Cody",
       "date": "2026-02-20"
+    },
+    {
+      "title": "Brock's Birthday @ Ultrazone",
+      "date": "2026-02-21"
     }
   ]
 }
