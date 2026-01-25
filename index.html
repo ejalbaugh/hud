@@ -96,27 +96,29 @@
       .card {
         background: #141a2b;
         border-radius: 12px;
-        padding: 10px 12px;
+        padding: 12px 14px;
         margin-bottom: 8px;
         border: 1px solid #26314a;
       }
-      .accent-outline {
-        border-color: var(--accent-right);
-        box-shadow: 0 0 0 1px rgba(209, 161, 207, 0.35);
-      }
       .row {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 16px;
       }
       .title {
         font-weight: 600;
-        padding-left: 2px;
+        padding-left: 6px;
       }
       .meta {
         color: var(--muted);
         font-size: 13px;
+        padding-left: 6px;
+      }
+      .meta-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
       .chip {
         padding: 2px 8px;
@@ -313,7 +315,7 @@
         if (!isoDate) return "—";
         const date = new Date(`${isoDate}T00:00:00`);
         const day = date.getDate();
-        const month = date.toLocaleDateString(undefined, { month: "short" });
+        const month = date.toLocaleDateString(undefined, { month: "long" });
         const weekday = date.toLocaleDateString(undefined, { weekday: "long" });
         return `${weekday}, ${month} ${day}${ordinalSuffix(day)}`;
       };
@@ -344,7 +346,7 @@
         container,
         items,
         emptyText,
-        { highlightDays = 3, showDate = true, cardClass = "" } = {}
+        { highlightDays = 3, showDate = true } = {}
       ) => {
         container.innerHTML = "";
         if (!items.length) {
@@ -356,7 +358,7 @@
         }
         items.forEach((item) => {
           const card = document.createElement("div");
-          card.className = `card event ${cardClass}`.trim();
+          card.className = "card event";
           if (item.days_until !== undefined && item.days_until <= highlightDays) {
             card.classList.add("highlight");
           }
@@ -369,16 +371,21 @@
           title.textContent = item.title;
 
           const meta = document.createElement("div");
-          meta.className = "meta";
+          meta.className = "meta meta-rows";
           const timeText = item.time ? formatTime(item.time) : "";
-          if (showDate) {
-            const relative = formatRelative(item.date);
-            const dateText = formatDate(item.date);
-            meta.textContent = timeText
-              ? `${relative} · ${dateText} · ${timeText}`
-              : `${relative} · ${dateText}`;
-          } else {
-            meta.textContent = timeText || "—";
+          const dateText = showDate ? formatDate(item.date) : "";
+          if (timeText) {
+            const timeRow = document.createElement("div");
+            timeRow.textContent = timeText;
+            meta.appendChild(timeRow);
+          }
+          if (dateText) {
+            const dateRow = document.createElement("div");
+            dateRow.textContent = dateText;
+            meta.appendChild(dateRow);
+          }
+          if (!timeText && !dateText) {
+            meta.textContent = "—";
           }
 
           row.appendChild(title);
@@ -414,7 +421,7 @@
         }
         items.forEach((item) => {
           const card = document.createElement("div");
-          card.className = "card event accent-outline";
+          card.className = "card event";
 
           const row = document.createElement("div");
           row.className = "row";
@@ -424,14 +431,20 @@
           title.textContent = item.title;
 
           const meta = document.createElement("div");
-          meta.className = "meta";
+          meta.className = "meta meta-rows";
           const dateValue = item.date || item.next_occurrence;
           const timeText = item.time ? formatTime(item.time) : "";
-          const relative = formatRelative(dateValue);
           const dateText = formatDate(dateValue);
-          meta.textContent = timeText
-            ? `${relative} · ${dateText} · ${timeText}`
-            : `${relative} · ${dateText}`;
+          if (timeText) {
+            const timeRow = document.createElement("div");
+            timeRow.textContent = timeText;
+            meta.appendChild(timeRow);
+          }
+          if (dateText) {
+            const dateRow = document.createElement("div");
+            dateRow.textContent = dateText;
+            meta.appendChild(dateRow);
+          }
 
           row.appendChild(title);
           row.appendChild(meta);
@@ -466,7 +479,7 @@
         }
         items.forEach((item) => {
           const card = document.createElement("div");
-          card.className = "card event accent-outline";
+          card.className = "card event";
 
           const row = document.createElement("div");
           row.className = "row";
@@ -476,14 +489,21 @@
           title.textContent = item.title;
 
           const meta = document.createElement("div");
-          meta.className = "meta";
+          meta.className = "meta meta-rows";
           const days = item.recurrence?.days?.length
             ? item.recurrence.days.join(", ")
             : "Weekly";
           const timeText = item.recurrence?.time
-            ? ` · ${formatTime(item.recurrence.time)}`
+            ? formatTime(item.recurrence.time)
             : "";
-          meta.textContent = `${days}${timeText}`;
+          if (timeText) {
+            const timeRow = document.createElement("div");
+            timeRow.textContent = timeText;
+            meta.appendChild(timeRow);
+          }
+          const daysRow = document.createElement("div");
+          daysRow.textContent = days;
+          meta.appendChild(daysRow);
 
           row.appendChild(title);
           row.appendChild(meta);
@@ -556,7 +576,7 @@
             document.getElementById("today-recurring"),
             todayRecurring,
             "No recurring today.",
-            { showDate: true, cardClass: "accent-outline" }
+            { showDate: true }
           );
 
           const nowRecurring = buildRecurringWindow(
@@ -572,8 +592,7 @@
           renderList(
             document.getElementById("now-recurring"),
             nowRecurring,
-            "No recurring in the next 7 days.",
-            { cardClass: "accent-outline" }
+            "No recurring in the next 7 days."
           );
           renderList(
             document.getElementById("soon"),
