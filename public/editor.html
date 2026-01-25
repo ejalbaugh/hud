@@ -231,6 +231,9 @@
               <input type="date" name="date" required />
               <div class="preview" id="left-preview"></div>
 
+              <label>End date (optional)</label>
+              <input type="date" name="end_date" />
+
               <label>Tag (optional)</label>
               <input name="tag" placeholder="trip, birthday, etc." />
 
@@ -251,6 +254,9 @@
               <label>Date</label>
               <input type="date" name="date" required />
               <div class="preview" id="big-preview"></div>
+
+              <label>End date (optional)</label>
+              <input type="date" name="end_date" />
 
               <label>Notes (optional)</label>
               <textarea name="notes" placeholder="Optional notes"></textarea>
@@ -468,8 +474,9 @@
                 summary = `${days}${timeText}`;
             } else {
                 const date = item.date || item.next_occurrence || "—";
+                const endDate = item.end_date ? ` → ${formatDate(item.end_date)}` : "";
                 const timeText = item.time ? ` · ${formatTime(item.time)}` : "";
-                summary = `${formatDate(date)}${timeText}`;
+                summary = `${formatDate(date)}${endDate}${timeText}`;
             }
             text.textContent = `${item.title} · ${summary}`;
 
@@ -491,14 +498,22 @@
       document.getElementById("left-form").addEventListener("submit", (event) => {
         event.preventDefault();
         const form = event.target;
-        const item = Object.fromEntries(new FormData(form));
+        const formData = new FormData(form);
+        const item = Object.fromEntries(formData);
+        if (!item.end_date) {
+          delete item.end_date;
+        }
         postItem("left", item, document.getElementById("left-status"), form);
       });
 
       document.getElementById("big-form").addEventListener("submit", (event) => {
         event.preventDefault();
         const form = event.target;
-        const item = Object.fromEntries(new FormData(form));
+        const formData = new FormData(form);
+        const item = Object.fromEntries(formData);
+        if (!item.end_date) {
+          delete item.end_date;
+        }
         postItem("big", item, document.getElementById("big-status"), form);
       });
 

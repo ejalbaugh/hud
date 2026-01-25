@@ -49,6 +49,9 @@ def normalize_item(item: dict) -> dict | None:
         "title": str(item.get("title", "(untitled)")),
         "date": item_date.isoformat(),
     }
+    end_date = parse_date(item.get("end_date"))
+    if end_date and end_date >= item_date:
+        payload["end_date"] = end_date.isoformat()
     if item.get("time"):
         payload["time"] = str(item["time"])
     if item.get("notes"):
@@ -71,23 +74,45 @@ def add_days_until(items: list[dict]) -> list[dict]:
     return enriched
 
 
-def split_left_items(items: list[dict]) -> dict:
+def expand_items_in_range(
+    items: list[dict], start: date, days: int
+) -> list[dict]:
+    expanded: list[dict] = []
+    for item in items:
+        start_date = parse_date(item["date"])
+        if not start_date:
+            continue
+        end_date = parse_date(item.get("end_date")) or start_date
+        window_end = start + timedelta(days=days - 1)
+        current = max(start_date, start)
+        final = min(end_date, window_end)
+        while current <= final:
+            entry = dict(item)
+            entry["date"] = current.isoformat()
+            expanded.append(entry)
+            current += timedelta(days=1)
+    return expanded
+
+
+def split_left_items(items: list[dict], today: date) -> dict:
+    expanded = expand_items_in_range(items, today, 31)
     now: list[dict] = []
     soon: list[dict] = []
-    landmarks: list[dict] = []
 
-    for item in add_days_until(items):
+    for item in add_days_until(expanded):
         if item["days_until"] < 0:
             continue
         if item["days_until"] <= 7:
             now.append(item)
         elif item["days_until"] <= 30:
             soon.append(item)
-        else:
-            landmarks.append(item)
 
-    now.sort(key=lambda i: i["date"])
-    soon.sort(key=lambda i: i["date"])
+    landmarks = [
+        item for item in items if (parse_date(item["date"]) - today).days > 30
+    ]
+
+    now.sort(key=lambda i: (i["date"], i.get("time") or "99:99", i["title"]))
+    soon.sort(key=lambda i: (i["date"], i.get("time") or "99:99", i["title"]))
     landmarks.sort(key=lambda i: i["date"])
 
     return {"now": now, "soon": soon, "landmarks": landmarks}
@@ -177,16 +202,16 @@ def build_today_list(
     today_iso = today.isoformat()
     items: list[dict] = []
 
-    for item in left_items:
-        if item["date"] == today_iso:
-            items.append(
-                {
-                    "title": item["title"],
-                    "date": item["date"],
-                    "time": item.get("time"),
-                    "source": "left",
-                }
-            )
+    expanded = expand_items_in_range(left_items, today, 1)
+    for item in expanded:
+        items.append(
+            {
+                "title": item["title"],
+                "date": item["date"],
+                "time": item.get("time"),
+                "source": "left",
+            }
+        )
 
     for item in appointments:
         date_value = item.get("date") or item.get("next_occurrence")
@@ -253,8 +278,7 @@ def main() -> None:
 
     calendar_items = [
         {"title": item["title"], "date": item["date"], "source": "left"}
-        for item in left_items
-        if 0 <= (parse_date(item["date"]) - today).days <= 27
+        for item in expand_items_in_range(left_items, today, 28)
     ] + [
         {"title": item["title"], "date": item["date"], "source": "recurring"}
         for item in recurring_occurrences
@@ -269,7 +293,7 @@ def main() -> None:
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "left": {
             "today": build_today_list(today, left_items, appointment_items, recurring_occurrences),
-            **split_left_items(left_items),
+            **split_left_items(left_items, today),
         },
         "right": {
             "appointments": sort_right(appointment_items),
