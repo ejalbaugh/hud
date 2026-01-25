@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-25T13:09:47",
+  "generated_at": "2026-01-25T13:11:48",
   "left": {
     "today": [],
     "now": [],
@@ -8,6 +8,12 @@
         "title": "Brock's Birthday @ Ultrazone",
         "date": "2026-02-21",
         "notes": "6pm",
+        "days_until": 27
+      },
+      {
+        "title": "Casino with Robirds",
+        "date": "2026-02-21",
+        "notes": "Casino day, Brocks bday that night!",
         "days_until": 27
       }
     ],
@@ -154,6 +160,11 @@
     },
     {
       "title": "Brock's Birthday @ Ultrazone",
+      "date": "2026-02-21",
+      "source": "left"
+    },
+    {
+      "title": "Casino with Robirds",
       "date": "2026-02-21",
       "source": "left"
     }
