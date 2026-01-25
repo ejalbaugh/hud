@@ -1,47 +1,9 @@
 {
-  "generated_at": "2026-01-25T11:43:35",
+  "generated_at": "2026-01-25T12:25:08",
   "left": {
     "now": [],
-    "soon": [
-      {
-        "title": "Trip to Mountains",
-        "date": "2026-02-10",
-        "tag": "trip",
-        "days_until": 16
-      }
-    ],
-    "landmarks": [
-      {
-        "title": "Birthday Party",
-        "date": "2026-02-25",
-        "tag": "celebration",
-        "days_until": 31
-      },
-      {
-        "title": "Japan Trip",
-        "date": "2026-04-12",
-        "days_until": 77
-      },
-      {
-        "title": "Sam & Jess Wedding",
-        "date": "2026-06-18",
-        "days_until": 144
-      }
-    ]
+    "soon": [],
+    "landmarks": []
   },
-  "right": [
-    {
-      "title": "Appointment A",
-      "notes": "Optional notes",
-      "tag": "appointment",
-      "date": "2026-01-28",
-      "days_until": 3
-    },
-    {
-      "title": "Recurring Event X",
-      "tag": "recurring",
-      "next_occurrence": "2026-01-30",
-      "days_until": 5
-    }
-  ]
+  "right": []
 }
