@@ -12,6 +12,13 @@
     "now": [],
     "soon": [
       {
+        "title": "DnD",
+        "date": "2026-02-10",
+        "tag": "",
+        "notes": "",
+        "days_until": 14
+      },
+      {
         "title": "Brock's Birthday @ Ultrazone",
         "date": "2026-02-21",
         "tag": "",
@@ -137,6 +144,11 @@
       "source": "recurring"
     },
     {
+      "title": "DnD",
+      "date": "2026-02-10",
+      "source": "left"
+    },
+    {
       "title": "Pilates",
       "date": "2026-02-11",
       "source": "recurring"
@@ -187,5 +199,5 @@
       "source": "recurring"
     }
   ],
-  "generated_at": "2026-01-27T21:14:43.401596"
+  "generated_at": "2026-01-27T21:21:50.326947"
 }
